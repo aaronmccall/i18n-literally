@@ -90,14 +90,17 @@ function traverseFiles(file) {
   const code = fs.readFileSync(file).toString();
   const ast = parser.parse(code, parserOptions);
   const basePath = path.dirname(file);
+
   ast.program.body.forEach(node => traverseNode(node, basePath));
 }
 
 function traverseNode(node, basePath) {
   switch (node.type) {
     case 'ImportDeclaration':
-      const isRelativePath = node.source.value.startsWith('.');
-      const importPath = path.resolve(isRelativePath ? basePath : NODE_PATH, node.source.value);
+      let filepath = node.source.value.replace('~/', '');
+      const isRelativePath = filepath.startsWith('.');
+      const importPath = path.resolve(isRelativePath ? basePath : NODE_PATH, filepath);
+
       if (!fileCache.includes(importPath)) {
         try {
           fileCache.push(importPath);
